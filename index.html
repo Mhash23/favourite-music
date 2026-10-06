@@ -1,0 +1,469 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Music Experience - Visual Studio Web Project</title>
+    <!-- Tailwind CSS CDN for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS Styling -->
+    <style>
+        :root {
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --accent-cyan: #06b6d4;
+            --bg-dark: #0f172a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .glow-title {
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(236, 72, 153, 0.3);
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Vinyl Spin Animation */
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .vinyl-spinning {
+            animation: spinSlow 12s linear infinite;
+        }
+
+        .vinyl-paused {
+            animation-play-state: paused;
+        }
+
+        /* Animated Gradient Border */
+        .gradient-border {
+            position: relative;
+            border-radius: 1rem;
+        }
+
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 1.1rem;
+            background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink), var(--accent-cyan));
+            z-index: -1;
+            opacity: 0.7;
+            filter: blur(6px);
+            transition: opacity 0.3s ease;
+        }
+
+        .gradient-border:hover::before {
+            opacity: 1;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-purple-500 selection:text-white">
+
+    <!-- JS Canvas Background Animation -->
+    <canvas id="bgCanvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-0"></canvas>
+
+    <!-- Header / Navbar -->
+    <header class="relative z-10 w-full max-w-7xl mx-auto p-6 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg shadow-purple-500/30">
+                <i class="fa-solid font-bold fa-music"></i>
+            </div>
+            <span class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
+                StudioPlayer
+            </span>
+        </div>
+        <div class="flex items-center gap-4 text-sm font-medium text-slate-300">
+            <span class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/50 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Visual Studio ASP.NET Web Project
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="relative z-10 w-full max-w-7xl mx-auto px-6 py-4 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Column: Video & Controls (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Video Container with Custom Styling -->
+            <div class="glass-panel p-4 rounded-2xl shadow-2xl gradient-border">
+                <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black shadow-inner">
+                    <!-- YouTube Video Embed (Embedded using iframe) -->
+                    <iframe 
+                        id="youtubePlayer"
+                        class="w-full h-full absolute inset-0 border-0" 
+                        src="https://www.youtube.com/embed/fJ9rUzIMcZQ?enablejsapi=1&autoplay=0&rel=0" 
+                        title="Queen – Bohemian Rhapsody (Official Video)" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+
+                <!-- Song Info Header -->
+                <div class="mt-4 flex flex-wrap justify-between items-center gap-4 px-2">
+                    <div>
+                        <h1 class="text-2xl font-extrabold text-white tracking-wide glow-title">Bohemian Rhapsody</h1>
+                        <p class="text-slate-400 text-sm font-medium mt-1">Queen • Remastered Classic</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="likeBtn" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium transition-all duration-200 flex items-center gap-2 border border-slate-700">
+                            <i class="fa-regular fa-heart text-pink-500" id="likeIcon"></i>
+                            <span id="likeCount">1,248</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive JS Visualizer Controls -->
+            <div class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-purple-400"></i> Interactive Visualizer Engine
+                    </h2>
+                    <span class="text-xs text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700">HTML5 Canvas + JS</span>
+                </div>
+
+                <!-- Custom Equalizer Wave Canvas -->
+                <div class="w-full h-28 bg-slate-950/80 rounded-xl overflow-hidden border border-slate-800/80 relative">
+                    <canvas id="visualizerCanvas" class="w-full h-full"></canvas>
+                    <div class="absolute bottom-2 right-3 text-[10px] text-slate-500 tracking-wider uppercase font-mono">Real-time Procedural Sync</div>
+                </div>
+
+                <!-- Interactive JS Controls -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-1">
+                    <button id="waveModeBtn" class="py-2 px-3 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all shadow-md shadow-purple-600/20 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-wave-square"></i> Sine Wave
+                    </button>
+                    <button id="barModeBtn" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all border border-slate-700 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-chart-simple"></i> Bars
+                    </button>
+                    <button id="particleModeBtn" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all border border-slate-700 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-sparkles"></i> Particles
+                    </button>
+                    <button id="speedToggleBtn" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all border border-slate-700 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-gauge-high text-cyan-400"></i> Speed: 1x
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Column: Interactive Vinyl & Metadata (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Vinyl Turntable Display -->
+            <div class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <div class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-4">Interactive Audio Simulation</div>
+                
+                <!-- Vinyl Record graphic -->
+                <div class="relative my-2">
+                    <div id="vinylRecord" class="w-56 h-56 sm:w-64 sm:h-64 rounded-full bg-slate-950 border-4 border-slate-800 shadow-2xl flex items-center justify-center relative vinyl-spinning">
+                        <!-- Grooves -->
+                        <div class="w-48 h-48 sm:w-56 sm:h-56 rounded-full border border-slate-800/80 absolute"></div>
+                        <div class="w-40 h-40 sm:w-48 sm:h-48 rounded-full border border-slate-800/60 absolute"></div>
+                        <div class="w-32 h-32 sm:w-36 sm:h-36 rounded-full border border-slate-800/40 absolute"></div>
+                        
+                        <!-- Center Label -->
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-purple-600 via-pink-500 to-amber-400 p-1 flex items-center justify-center shadow-inner">
+                            <div class="w-full h-full rounded-full bg-slate-900 flex flex-col items-center justify-center text-[8px] text-slate-300 font-bold tracking-tight">
+                                <span>SIDE A</span>
+                                <div class="w-3 h-3 rounded-full bg-slate-950 border-2 border-slate-700 my-0.5"></div>
+                                <span>33 RPM</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex gap-3 w-full max-w-xs">
+                    <button id="toggleVinylBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 transition-all">
+                        <i class="fa-solid fa-pause mr-1" id="vinylPlayIcon"></i> Pause Vinyl
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visual Studio & GitHub Project Notes -->
+            <div class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-3">
+                <h3 class="text-md font-bold text-white flex items-center gap-2">
+                    <i class="fa-brands fa-github text-purple-400 text-lg"></i> GitHub & VS Project Details
+                </h3>
+                <p class="text-slate-300 text-xs leading-relaxed">
+                    This single-page app is pre-structured for deployment in **Visual Studio** using standard ASP.NET Static Web Assets or basic HTML web hosting templates.
+                </p>
+                <div class="bg-slate-950/60 rounded-lg p-3 border border-slate-800 text-[11px] text-slate-400 font-mono space-y-1">
+                    <p><span class="text-purple-400">Framework:</span> HTML5 / CSS3 / ES6 JavaScript</p>
+                    <p><span class="text-pink-400">Styling:</span> Tailwind CSS + Custom Animations</p>
+                    <p><span class="text-cyan-400">Video Embed:</span> YouTube IFrame Player API</p>
+                    <p><span class="text-emerald-400">Git Branch:</span> main / origin</p>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="relative z-10 w-full border-t border-slate-800/80 bg-slate-950/50 mt-8 py-4 px-6 text-center text-xs text-slate-500">
+        <p>© Modern Web Application Project • Built for Visual Studio & GitHub Version Control</p>
+    </footer>
+
+    <!-- JavaScript Logic & Canvas Animations -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ==========================================
+            // 1. BACKGROUND FLOATING PARTICLES (CANVAS)
+            // ==========================================
+            const bgCanvas = document.getElementById('bgCanvas');
+            const bgCtx = bgCanvas.getContext('2d');
+            
+            function resizeBgCanvas() {
+                bgCanvas.width = window.innerWidth;
+                bgCanvas.height = window.innerHeight;
+            }
+            resizeBgCanvas();
+            window.addEventListener('resize', resizeBgCanvas);
+
+            const bgParticles = Array.from({ length: 40 }, () => ({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                radius: Math.random() * 3 + 1,
+                dx: (Math.random() - 0.5) * 0.5,
+                dy: (Math.random() - 0.5) * 0.5,
+                alpha: Math.random() * 0.5 + 0.1
+            }));
+
+            function animateBg() {
+                bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+                bgParticles.forEach(p => {
+                    p.x += p.dx;
+                    p.y += p.dy;
+
+                    if (p.x < 0 || p.x > bgCanvas.width) p.dx *= -1;
+                    if (p.y < 0 || p.y > bgCanvas.height) p.dy *= -1;
+
+                    bgCtx.beginPath();
+                    bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    bgCtx.fillStyle = `rgba(139, 92, 246, ${p.alpha})`;
+                    bgCtx.fill();
+                });
+                requestAnimationFrame(animateBg);
+            }
+            animateBg();
+
+            // ==========================================
+            // 2. AUDIO VISUALIZER CANVAS ANIMATION
+            // ==========================================
+            const canvas = document.getElementById('visualizerCanvas');
+            const ctx = canvas.getContext('2d');
+            let animationMode = 'wave'; // 'wave', 'bars', 'particles'
+            let speedMultiplier = 1;
+            let phase = 0;
+
+            function fixCanvasScaling() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            }
+            fixCanvasScaling();
+            window.addEventListener('resize', fixCanvasScaling);
+
+            // Particle mode variables
+            const visualizerParticles = Array.from({ length: 30 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 4 + 2,
+                speedY: Math.random() * 1.5 + 0.5,
+                hue: Math.random() * 60 + 260
+            }));
+
+            function drawVisualizer() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (animationMode === 'wave') {
+                    // Smooth Dual Sine Wave
+                    ctx.beginPath();
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#ec4899';
+
+                    for (let x = 0; x < canvas.width; x++) {
+                        const y = Math.sin((x * 0.02) + phase) * 20 + 
+                                  Math.cos((x * 0.01) + phase * 0.5) * 10 + 
+                                  (canvas.height / 2);
+                        if (x === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+
+                    // Secondary Cyan Wave
+                    ctx.beginPath();
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#06b6d4';
+                    for (let x = 0; x < canvas.width; x++) {
+                        const y = Math.cos((x * 0.015) - phase) * 15 + (canvas.height / 2);
+                        if (x === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+
+                } else if (animationMode === 'bars') {
+                    // Dynamic Equalizer Bars
+                    const numBars = 32;
+                    const barWidth = (canvas.width / numBars) - 3;
+
+                    for (let i = 0; i < numBars; i++) {
+                        const height = Math.sin(i * 0.3 + phase) * 35 + Math.cos(i * 0.5 + phase) * 15 + 40;
+                        const x = i * (barWidth + 3) + 2;
+                        const y = canvas.height - height;
+
+                        const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
+                        gradient.addColorStop(0, '#8b5cf6');
+                        gradient.addColorStop(1, '#ec4899');
+
+                        ctx.fillStyle = gradient;
+                        ctx.borderRadius = 4;
+                        ctx.fillRect(x, y, barWidth, height);
+                    }
+
+                } else if (animationMode === 'particles') {
+                    // Floating Music Beats Particles
+                    visualizerParticles.forEach(p => {
+                        p.y -= p.speedY * speedMultiplier;
+                        if (p.y < 0) {
+                            p.y = canvas.height;
+                            p.x = Math.random() * canvas.width;
+                        }
+
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fillStyle = `hsl(${p.hue}, 80%, 60%)`;
+                        ctx.shadowBlur = 8;
+                        ctx.shadowColor = `hsl(${p.hue}, 80%, 60%)`;
+                        ctx.fill();
+                        ctx.shadowBlur = 0; // reset
+                    });
+                }
+
+                phase += 0.05 * speedMultiplier;
+                requestAnimationFrame(drawVisualizer);
+            }
+
+            drawVisualizer();
+
+            // ==========================================
+            // 3. EVENT LISTENERS & INTERACTION LOGIC
+            // ==========================================
+
+            // Visualizer Mode Switchers
+            const waveBtn = document.getElementById('waveModeBtn');
+            const barBtn = document.getElementById('barModeBtn');
+            const particleBtn = document.getElementById('particleModeBtn');
+            const speedBtn = document.getElementById('speedToggleBtn');
+
+            function setActiveBtn(activeBtn) {
+                [waveBtn, barBtn, particleBtn].forEach(btn => {
+                    btn.className = "py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all border border-slate-700 flex items-center justify-center gap-2";
+                });
+                activeBtn.className = "py-2 px-3 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all shadow-md shadow-purple-600/20 flex items-center justify-center gap-2";
+            }
+
+            waveBtn.addEventListener('click', () => {
+                animationMode = 'wave';
+                setActiveBtn(waveBtn);
+            });
+
+            barBtn.addEventListener('click', () => {
+                animationMode = 'bars';
+                setActiveBtn(barBtn);
+            });
+
+            particleBtn.addEventListener('click', () => {
+                animationMode = 'particles';
+                setActiveBtn(particleBtn);
+            });
+
+            speedBtn.addEventListener('click', () => {
+                if (speedMultiplier === 1) {
+                    speedMultiplier = 2;
+                    speedBtn.innerHTML = '<i class="fa-solid fa-gauge-high text-pink-400"></i> Speed: 2x';
+                } else {
+                    speedMultiplier = 1;
+                    speedBtn.innerHTML = '<i class="fa-solid fa-gauge-high text-cyan-400"></i> Speed: 1x';
+                }
+            });
+
+            // Vinyl Record Rotation Toggle
+            const vinylRecord = document.getElementById('vinylRecord');
+            const toggleVinylBtn = document.getElementById('toggleVinylBtn');
+            const vinylPlayIcon = document.getElementById('vinylPlayIcon');
+            let isVinylSpinning = true;
+
+            toggleVinylBtn.addEventListener('click', () => {
+                isVinylSpinning = !isVinylSpinning;
+                if (isVinylSpinning) {
+                    vinylRecord.classList.remove('vinyl-paused');
+                    toggleVinylBtn.innerHTML = '<i class="fa-solid fa-pause mr-1"></i> Pause Vinyl';
+                } else {
+                    vinylRecord.classList.add('vinyl-paused');
+                    toggleVinylBtn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> Spin Vinyl';
+                }
+            });
+
+            // Like Button Counter Toggle
+            const likeBtn = document.getElementById('likeBtn');
+            const likeIcon = document.getElementById('likeIcon');
+            const likeCount = document.getElementById('likeCount');
+            let isLiked = false;
+
+            likeBtn.addEventListener('click', () => {
+                isLiked = !isLiked;
+                if (isLiked) {
+                    likeIcon.classList.remove('fa-regular');
+                    likeIcon.classList.add('fa-solid', 'text-pink-500');
+                    likeCount.textContent = '1,249';
+                    likeBtn.classList.add('border-pink-500/50', 'bg-slate-800/90');
+                } else {
+                    likeIcon.classList.remove('fa-solid');
+                    likeIcon.classList.add('fa-regular');
+                    likeCount.textContent = '1,248';
+                    likeBtn.classList.remove('border-pink-500/50', 'bg-slate-800/90');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
